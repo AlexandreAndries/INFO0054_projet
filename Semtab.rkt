@@ -45,9 +45,31 @@
   (and (not (null? x))
        (not (pair? x))))
 
+(define (premier? verif ls)
+  (if (equal? (car ls) verif) #t #f)
+)
+
+
+
+(define (OR_simpli a b) 
+  (list (list a) (list b))
+)
+
+(define (AND_simpli a b)
+  (list a b)
+)
+
+(define (IFTHEN_simpli a b)
+  (list (list (NOT a) (list b)))
+)
+
+(define (test model_brut)
+  body)
 
 (define (semtab formule_propositionnel)
   (cond ((null? formule_propositionnel) (display "Aucune formule propositionnel\n"))
+        
   )
 )
+
 
