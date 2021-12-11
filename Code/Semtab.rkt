@@ -1,5 +1,5 @@
 #lang racket
-
+(require racket/trace)
 (require "tableau.rkt")
 ;Vérifie si la liste x est un atome
 ;   précondition: x != null
@@ -8,10 +8,11 @@
 ;         #t si x est un atome
 ;         #f sinon
 (define (atom? x) (and (not (null? x)) (not (pair? x))))
+(define (contient? x ls) (if (member x ls) #t #f))
 
 
 (define test '((NOT a) (NOT (OR a b)) (NOT (AND a b)) (NOT (IFTHEN a b)) (NOT a) (IFTHEN a b) (OR a b) (AND a b)))
-
+(define test-contra '((b c (NOT a) d)))
 
 (define (premier? bool operation) (if (eqv? bool (car operation)) #t #f))
 
@@ -19,7 +20,7 @@
 ;   précondition: operation != null
 ;
 ;   retourne:
-;         liste contenant les différents tableaux d'opération
+;         liste contenant les différents tableaux d'opération (1 ou 2 tableau dans la liste en fonction des cas)
 (define (elimination-ope operation)
   (if (not (atom? (cadr operation)))
     ;consequent
@@ -47,4 +48,14 @@
             ((premier? 'IFTHEN operation) (cree-liste-tableau (ajout-tableau (NOT prem-elem) sec-elem)))
           ))))))
 
-(map elimination-ope test)
+
+(define (contient-contradiction? tableau)
+  (if (null? tableau)
+    ;consequent
+    #f
+    ;else
+    (let ((prem-elem (car tableau)) (reste-tab (cdr tableau)))
+      (if (atom? prem-elem)
+        (if (contient? (NOT prem-elem) reste-tab) #t (contient-contradiction? reste-tab))
+        (if (contient? (get-proposition-NOT prem-elem) reste-tab) #t (contient-contradiction? reste-tab))
+      ))))
