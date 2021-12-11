@@ -1,5 +1,7 @@
 #lang racket
 
+
+
 (define (satisfiable? formule_propositionnel)
   '()
 )
