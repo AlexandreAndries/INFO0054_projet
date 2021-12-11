@@ -80,7 +80,10 @@
       (if (atom? prem-elem)
         (if (contient? (NOT prem-elem) reste-tab) #t continue)
         (if (contient? (get-proposition-NOT prem-elem) reste-tab) #t continue)
-      ))))
+      )
+    )
+  )
+)
 ; ---------------------------------------------------------------------------- ;
 (define (contient-operateur? tableau)
   (if (null? tableau)
@@ -89,11 +92,8 @@
     ;else
     (let* ((prem-elem (car tableau)) (reste-tab (cdr tableau)) (continue (contient-operateur? reste-tab)))
       (if (atom? prem-elem)
-        (if (or (contient? 'IFTHEN reste-tab) (contient? 'AND reste-tab) (contient? 'OR reste-tab)) #t continue)
-        continue ;temporaire, a modifier
-        ; (let (sous-tab (cadr reste-tab))
-        ;   (if (or (contient? 'IFTHEN sous-tab) (contient? 'AND sous-tab) (contient? 'OR sous-tab)) #t continue)
-        ; )
+        continue
+        (if (equal? 'NOT (car prem-elem)) continue #t)
       )
     )
   )
@@ -113,12 +113,12 @@
 ; ---------------------------------------------------------------------------- ;
 ; -------------------------------Zone de tests-------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
-(contient-contradiction? test-contra-f)    ; doit donner #f
-(contient-contradiction? test-contra-t)    ; doit donner #t
-(contient-operateur? test-ouvert-t)        ; doit donner #f
-(est-ouvert? test-ouvert-t)                ; doit donner #t
-(contient-operateur? test-ouvert-f)        ; doit donner #t
-(est-ouvert? test-ouvert-f)                ; doit donner #f
+(contient-contradiction? (car test-contra-f))    ; doit donner #f
+(contient-contradiction? (car test-contra-t))    ; doit donner #t
+(contient-operateur? (car test-ouvert-t))        ; doit donner #f
+(est-ouvert? (car test-ouvert-t))                ; doit donner #t
+(contient-operateur? (car test-ouvert-f))        ; doit donner #t
+(est-ouvert? (car test-ouvert-f))                ; doit donner #f
 ; ---------------------------------------------------------------------------- ;
 ; ---------------------------------FIN SEMTAB--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
