@@ -45,31 +45,36 @@
   (and (not (null? x))
        (not (pair? x))))
 
-(define (premier? verif ls)
-  (if (equal? (car ls) verif) #t #f)
-)
+(define op '(IFTHEN a b))
+
+(define (premier? bool operation) (if (eqv? bool (car operation)) #t #f))
 
 
+(define (elimination-ope operation)
+  (if (not (atom? (cadr operation)))
+    ;consequent
+    (let* ((sous-op (cadr operation)) (prem-elem (cadr sous-op)))
+      (if (premier? 'NOT sous-op)
+        ;consequent
+        (list prem-elem)
+        ;else
+        (let ((sec-elem (caddr sous-op)))
+          (cond
+            ((premier? 'AND sous-op) (list (list 'NOT prem-elem) (list 'NOT sec-elem)))
+            ((premier? 'OR sous-op) (list (list (list 'NOT prem-elem) (list 'NOT sec-elem))))
+            ((premier? 'IFTHEN sous-op) (list prem-elem (list 'NOT sec-elem)))
+          ))))
+    ;else
+    (let ((prem-elem (cadr operation)))
+      (if (premier? 'NOT operation)
+        ;consequent
+        (list (list 'NOT prem-elem))
+        ;else
+        (let ((sec-elem (caddr operation)))
+          (cond 
+            ((premier? 'AND operation) (list (list prem-elem sec-elem)))
+            ((premier? 'OR operation) (list (list prem-elem) (list sec-elem)))
+            ((premier? 'IFTHEN operation) (list (list (list 'NOT prem-elem)) (list sec-elem)))
+          ))))))
 
-(define (OR_simpli a b) 
-  (list (list a) (list b))
-)
-
-(define (AND_simpli a b)
-  (list a b)
-)
-
-(define (IFTHEN_simpli a b)
-  (list (list (NOT a) (list b)))
-)
-
-(define (test model_brut)
-  body)
-
-(define (semtab formule_propositionnel)
-  (cond ((null? formule_propositionnel) (display "Aucune formule propositionnel\n"))
-        
-  )
-)
-
-
+(elimination-ope op)
