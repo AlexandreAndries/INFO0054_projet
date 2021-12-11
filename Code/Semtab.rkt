@@ -54,8 +54,13 @@
     ;consequent
     #f
     ;else
-    (let ((prem-elem (car tableau)) (reste-tab (cdr tableau)))
+    (let* ((prem-elem (car tableau)) (reste-tab (cdr tableau)) (continue (contient-contradiction? reste-tab)))
       (if (atom? prem-elem)
-        (if (contient? (NOT prem-elem) reste-tab) #t (contient-contradiction? reste-tab))
-        (if (contient? (get-proposition-NOT prem-elem) reste-tab) #t (contient-contradiction? reste-tab))
+        (if (contient? (NOT prem-elem) reste-tab) #t continue)
+        (if (contient? (get-proposition-NOT prem-elem) reste-tab) #t continue)
       ))))
+
+(define (est-ouvert? tableau)
+)
+
+
