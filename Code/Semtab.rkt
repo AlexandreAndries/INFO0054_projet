@@ -31,43 +31,33 @@
 ; ---------------------------------------------------------------------------- ;
 (define (premier? bool operation) (if (eqv? bool (car operation)) #t #f))
 ; ---------------------------------------------------------------------------- ;
+
 ;Elimine les opérations dites simples en un ou deux tableaux maximum
 ;   précondition: operation != null
 ;
 ;   retourne:
 ;         liste contenant les différents tableaux d'opération (1 ou 2 tableau dans la liste en fonction des cas)
-(define (elimination-ope operation)
-  (if (not (atom? (cadr operation)))
-    ;consequent
-    (let* ((sous-op (cadr operation)) (prem-elem (cadr sous-op)))
-      (if (premier? 'NOT sous-op)
-        ;consequent
-        (cree-liste-tableau prem-elem)
-        ;else
-        (let ((sec-elem (caddr sous-op)))
-          (cond
-            ((premier? 'AND sous-op) (cree-liste-tableau (ajout-tableau (NOT prem-elem)) (ajout-tableau (NOT sec-elem))))
-            ((premier? 'OR sous-op) (cree-liste-tableau (ajout-tableau (NOT prem-elem) (NOT sec-elem))))
-            ((premier? 'IFTHEN sous-op) (cree-liste-tableau (ajout-tableau prem-elem (NOT sec-elem))))
-          )
-        )
-      )
-    )
-    ;else
+(define (elim-operation operation)
+  (if (premier? 'NOT operation)
+    ;consequent 
     (let ((prem-elem (cadr operation)))
-      (if (premier? 'NOT operation)
-        ;consequent
-        (cree-liste-tableau (NOT prem-elem))
-        ;else
-        (let ((sec-elem (caddr operation)))
-          (cond
-            ((premier? 'AND operation) (cree-liste-tableau (ajout-tableau prem-elem sec-elem)))
-            ((premier? 'OR operation) (cree-liste-tableau (ajout-tableau prem-elem) (ajout-tableau sec-elem)))
-            ((premier? 'IFTHEN operation) (cree-liste-tableau (ajout-tableau (NOT prem-elem) sec-elem)))
-          )
-        )
-      )
-    )
+      (if (atom? prem-elem)
+
+        (cree-liste-tableau (ajout-tableau (NOT prem-elem)))
+
+        (let ((prem-elem-sous-op (cadr prem-elem)) (sec-elem-sous-op (caddr prem-elem)))
+          (cond ((premier? 'AND prem-elem) (cree-liste-tableau (ajout-tableau (NOT prem-elem-sous-op)) (ajout-tableau (NOT sec-elem-sous-op))))
+            ((premier? 'OR prem-elem) (cree-liste-tableau (ajout-tableau (NOT prem-elem-sous-op) (NOT sec-elem-sous-op))))
+            ((premier? 'IFTHEN prem-elem) (cree-liste-tableau (ajout-tableau prem-elem-sous-op (NOT sec-elem-sous-op))))))))
+    ;else
+    (if (<= (length operation) 1)
+      ;consequent
+      (cree-liste-tableau (ajout-tableau (car operation)))
+      ;else
+      (let ((prem-elem (cadr operation)) (sec-elem (caddr operation)))
+        (cond ((premier? 'AND operation) (cree-liste-tableau (ajout-tableau prem-elem sec-elem)))
+          ((premier? 'OR operation) (cree-liste-tableau (ajout-tableau prem-elem) (ajout-tableau sec-elem)))
+          ((premier? 'IFTHEN operation) (cree-liste-tableau (ajout-tableau (NOT prem-elem)) (ajout-tableau sec-elem))))))
   )
 )
 ; ---------------------------------------------------------------------------- ;
@@ -85,9 +75,7 @@
     (let* ((prem-elem (car tableau)) (reste-tab (cdr tableau)) (continue (contient-contradiction? reste-tab)))
       (if (atom? prem-elem)
         (if (contient? (NOT prem-elem) reste-tab) #t continue)
-        (if (contient? (get-proposition-NOT prem-elem) reste-tab) #t continue)
-      )
-    )
+        (if (contient? (get-proposition-NOT prem-elem) reste-tab) #t continue)))
   )
 )
 ; ---------------------------------------------------------------------------- ;
@@ -105,10 +93,7 @@
     (let* ((prem-elem (car tableau)) (reste-tab (cdr tableau)) (continue (contient-operateur? reste-tab)))
       (if (atom? prem-elem)
         continue
-        (if (not (equal? 'NOT (car prem-elem))) #t continue)
-      )
-    )
-  )
+        (if (not (equal? 'NOT (car prem-elem))) #t continue))))
 )
 ; ---------------------------------------------------------------------------- ;
 ;Vérifie si le tableau entré est ouvert (ou, sinon, fermé)
@@ -118,8 +103,8 @@
 ;         #t si tableau est ouvert (ne contient ni contra., ni opér. binaire)
 ;         #f sinon (le tableau est alors fermé)
 (define (est-ouvert? tableau)
-  (cond ((contient-contradiction? tableau) #f)
-        ((contient-operateur? tableau) #f)
+  (cond ((contient-operateur? tableau) #f)
+        ((contient-contradiction? tableau) #f)
         (else #t)
   )
 )
@@ -137,6 +122,7 @@
 (est-ouvert? (car test-ouvert))                  ; doit donner #t
 (contient-operateur? (car test-ferme))           ; doit donner #t
 (est-ouvert? (car test-ferme))                   ; doit donner #f
+(elim-operation '(NOT (AND a b)))                ; doit donner (((NOT a)) ((NOT b)))
 ; ---------------------------------------------------------------------------- ;
 ; ---------------------------------FIN SEMTAB--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
