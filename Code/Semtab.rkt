@@ -8,6 +8,7 @@
 ; ---------------------------------------------------------------------------- ;
 (require racket/trace)
 (require "tableau.rkt")
+
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------Définition des tableaux de tests--------------------- ;
 ; ---------------------------------------------------------------------------- ;
@@ -16,6 +17,7 @@
 (define test-contra-t '((b c (NOT a) d a)))
 (define test-ferme '((b (IFTHEN b c) c (NOT a) d)))
 (define test-ouvert '((b c (NOT a) d e)))
+(define test-semtab '(a c b (NOT b) (NOT (NOT a))))
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------Définition des fonctions locales--------------------- ;
 ; ---------------------------------------------------------------------------- ;
@@ -38,16 +40,16 @@
 ;   retourne:
 ;         liste contenant les différents tableaux d'opération (1 ou 2 tableau dans la liste en fonction des cas)
 (define (elim-operation operation)
-  (match formule
-        ((list 'AND a b) (list (list a b)))
-        ((list 'OR a b) (list (list a) (list b)))
-        ((list 'IFTHEN a b) (list (list (mk-NOT a)) (list b)))
-        ((list 'NOT (list 'AND a b)) (list (list (mk-NOT a)) (list (mk-NOT b))))
-        ((list 'NOT (list 'OR a b)) (list (list (mk-NOT a) (mk-NOT b))))
-        ((list 'NOT (list 'IFTHEN a b)) (list (list a (mk-NOT b))))
-        ((list 'NOT (list 'NOT a)) (list (list a)))
-        ((list 'NOT a) (list (list(mk-NOT a))))
-        (a (list (list a)))
+  (match operation
+        ((list 'AND a b) (cree-liste-tableau (ajout-tableau a b)))
+        ((list 'OR a b) (cree-liste-tableau (ajout-tableau a) (ajout-tableau b)))
+        ((list 'IFTHEN a b) (cree-liste-tableau (ajout-tableau (mk-NOT a)) (ajout-tableau b)))
+        ((list 'NOT (list 'AND a b)) (cree-liste-tableau (ajout-tableau (mk-NOT a)) (ajout-tableau (mk-NOT b))))
+        ((list 'NOT (list 'OR a b)) (cree-liste-tableau (ajout-tableau (mk-NOT a) (mk-NOT b))))
+        ((list 'NOT (list 'IFTHEN a b)) (cree-liste-tableau (ajout-tableau a (mk-NOT b))))
+        ((list 'NOT (list 'NOT a)) (cree-liste-tableau (ajout-tableau a)))
+        ((list 'NOT a) (cree-liste-tableau (ajout-tableau(mk-NOT a))))
+        (a (cree-liste-tableau (ajout-tableau a)))
     )
 )
 ; ---------------------------------------------------------------------------- ;
@@ -64,7 +66,7 @@
     ;else
     (let* ((prem-elem (car tableau)) (reste-tab (cdr tableau)) (continue (contient-contradiction? reste-tab)))
       (if (atom? prem-elem)
-        (if (contient? (NOT prem-elem) reste-tab) #t continue)
+        (if (contient? (mk-NOT prem-elem) reste-tab) #t continue)
         (if (contient? (get-proposition-NOT prem-elem) reste-tab) #t continue)))
   )
 )
@@ -100,9 +102,49 @@
   )
 )
 ; ---------------------------------------------------------------------------- ;
+
+(define (cherche-elimination liste-formule)
+  (letrec ((meilleur-formule? (lambda (ls)
+                                (if (null? ls)
+                                  #f
+                                  (let ((operation (car ls)) (reste (meilleur-formule? (cdr ls))))
+                                    (match operation
+                                      ((list 'AND a b) operation)
+                                      ((list 'NOT (list 'IFTHEN a b)) operation)
+                                      ((list 'NOT (list 'OR a b)) operation)
+                                      ((list 'NOT (list 'NOT a)) operation)
+                                      ((list 'NOT (list 'AND a b)) reste)
+                                      ((list 'OR a b) reste)
+                                      ((list 'IFTHEN a b) reste)
+                                      (a reste)
+                                    )))))
+
+              (formule? (lambda (ls)
+                          (if (null? ls)
+                            #f
+                            (let ((operation (car ls)) (reste (formule? (cdr ls))))
+                              (if (or (atom? operation) (atom? (cadr operation)))
+                                reste
+                                operation))))))
+
+    (if (meilleur-formule? liste-formule)
+      (meilleur-formule? liste-formule)
+      (formule? liste-formule)
+    )))
+; ---------------------------------------------------------------------------- ;
 ; -----------------------------------SEMTAB----------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
 ; définir semtab ici
+
+
+
+
+
+
+
+
+
+
 
 ; ---------------------------------------------------------------------------- ;
 ; -------------------------------Zone de tests-------------------------------- ;
@@ -114,6 +156,9 @@
 (contient-operateur? (car test-ferme))           ; doit donner #t
 (est-ouvert? (car test-ferme))                   ; doit donner #f
 (elim-operation '(NOT (AND a b)))                ; doit donner (((NOT a)) ((NOT b)))
+(cherche-elimination test-semtab)                ; doit donner (NOT (OR c b))
+(display "\n")
+(cherche-elimination test-semtab)
 ; ---------------------------------------------------------------------------- ;
 ; ---------------------------------FIN SEMTAB--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
