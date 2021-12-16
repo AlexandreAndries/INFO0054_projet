@@ -38,27 +38,17 @@
 ;   retourne:
 ;         liste contenant les différents tableaux d'opération (1 ou 2 tableau dans la liste en fonction des cas)
 (define (elim-operation operation)
-  (if (premier? 'NOT operation)
-    ;consequent 
-    (let ((prem-elem (cadr operation)))
-      (if (atom? prem-elem)
-
-        (cree-liste-tableau (ajout-tableau (NOT prem-elem)))
-
-        (let ((prem-elem-sous-op (cadr prem-elem)) (sec-elem-sous-op (caddr prem-elem)))
-          (cond ((premier? 'AND prem-elem) (cree-liste-tableau (ajout-tableau (NOT prem-elem-sous-op)) (ajout-tableau (NOT sec-elem-sous-op))))
-            ((premier? 'OR prem-elem) (cree-liste-tableau (ajout-tableau (NOT prem-elem-sous-op) (NOT sec-elem-sous-op))))
-            ((premier? 'IFTHEN prem-elem) (cree-liste-tableau (ajout-tableau prem-elem-sous-op (NOT sec-elem-sous-op))))))))
-    ;else
-    (if (<= (length operation) 1)
-      ;consequent
-      (cree-liste-tableau (ajout-tableau (car operation)))
-      ;else
-      (let ((prem-elem (cadr operation)) (sec-elem (caddr operation)))
-        (cond ((premier? 'AND operation) (cree-liste-tableau (ajout-tableau prem-elem sec-elem)))
-          ((premier? 'OR operation) (cree-liste-tableau (ajout-tableau prem-elem) (ajout-tableau sec-elem)))
-          ((premier? 'IFTHEN operation) (cree-liste-tableau (ajout-tableau (NOT prem-elem)) (ajout-tableau sec-elem))))))
-  )
+  (match formule
+        ((list 'AND a b) (list (list a b)))
+        ((list 'OR a b) (list (list a) (list b)))
+        ((list 'IFTHEN a b) (list (list (mk-NOT a)) (list b)))
+        ((list 'NOT (list 'AND a b)) (list (list (mk-NOT a)) (list (mk-NOT b))))
+        ((list 'NOT (list 'OR a b)) (list (list (mk-NOT a) (mk-NOT b))))
+        ((list 'NOT (list 'IFTHEN a b)) (list (list a (mk-NOT b))))
+        ((list 'NOT (list 'NOT a)) (list (list a)))
+        ((list 'NOT a) (list (list(mk-NOT a))))
+        (a (list (list a)))
+    )
 )
 ; ---------------------------------------------------------------------------- ;
 ;Vérifie si le tableau entré contient une contradiction (ex: a et (NOT a))
@@ -93,7 +83,8 @@
     (let* ((prem-elem (car tableau)) (reste-tab (cdr tableau)) (continue (contient-operateur? reste-tab)))
       (if (atom? prem-elem)
         continue
-        (if (not (equal? 'NOT (car prem-elem))) #t continue))))
+        (if (not (equal? 'NOT (car prem-elem))) #t continue)))
+  )
 )
 ; ---------------------------------------------------------------------------- ;
 ;Vérifie si le tableau entré est ouvert (ou, sinon, fermé)

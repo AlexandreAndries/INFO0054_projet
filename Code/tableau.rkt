@@ -3,11 +3,13 @@
 (provide cree-liste-tableau)
 (provide ajout-tableau)
 
-(provide NOT)
+(provide mk-NOT)
 (provide get-proposition-NOT)
 
 (define cree-liste-tableau list)
 (define ajout-tableau list)
 
-(define (NOT x) (list 'NOT x))
+(define (mk-NOT x) (list 'NOT x))
 (define get-proposition-NOT cadr)
+
+;Faire fonction cree-liste-vide -> '() et fonction (cree-liste nbr-aleatoire-tableau) -> liste des tableau en arguments
