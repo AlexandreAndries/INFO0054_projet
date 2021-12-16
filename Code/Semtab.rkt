@@ -12,12 +12,7 @@
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------Définition des tableaux de tests--------------------- ;
 ; ---------------------------------------------------------------------------- ;
-(define test '((NOT a) (NOT (OR a b)) (NOT (AND a b)) (NOT (IFTHEN a b)) (NOT a) (IFTHEN a b) (OR a b) (AND a b)))
-(define test-contra-f '((b c (NOT a) d)))
-(define test-contra-t '((b c (NOT a) d a)))
-(define test-ferme '((b (IFTHEN b c) c (NOT a) d)))
-(define test-ouvert '((b c (NOT a) d e)))
-(define test-semtab '(a c b (NOT b) (NOT (NOT a))))
+(define test-semtab '(c (NOT b) (OR (OR a b) f)))
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------Définition des fonctions locales--------------------- ;
 ; ---------------------------------------------------------------------------- ;
@@ -33,7 +28,13 @@
 ; ---------------------------------------------------------------------------- ;
 (define (premier? bool operation) (if (eqv? bool (car operation)) #t #f))
 ; ---------------------------------------------------------------------------- ;
+(define (unique ls) 
+  (if (null? ls)
+    '()
+    (cons (car ls) (unique (filter (lambda (x) (not (eqv? x (car ls)))) ls)))))
 
+(unique '((a) (a)))
+; ---------------------------------------------------------------------------- ;
 ;Elimine les opérations dites simples en un ou deux tableaux maximum
 ;   précondition: operation != null
 ;
@@ -102,7 +103,6 @@
   )
 )
 ; ---------------------------------------------------------------------------- ;
-
 (define (cherche-elimination liste-formule)
   (letrec ((meilleur-formule? (lambda (ls)
                                 (if (null? ls)
@@ -123,9 +123,16 @@
                           (if (null? ls)
                             #f
                             (let ((operation (car ls)) (reste (formule? (cdr ls))))
-                              (if (or (atom? operation) (atom? (cadr operation)))
-                                reste
-                                operation))))))
+                              (match operation
+                                      ((list 'AND a b) reste)
+                                      ((list 'NOT (list 'IFTHEN a b)) reste)
+                                      ((list 'NOT (list 'OR a b)) reste)
+                                      ((list 'NOT (list 'NOT a)) reste)
+                                      ((list 'NOT (list 'AND a b)) operation)
+                                      ((list 'OR a b) operation)
+                                      ((list 'IFTHEN a b) operation)
+                                      (a reste)
+                                    ))))))
 
     (if (meilleur-formule? liste-formule)
       (meilleur-formule? liste-formule)
@@ -134,31 +141,27 @@
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------------------SEMTAB----------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
-; définir semtab ici
+(define (semtab-aux F acc)
+  (if (null? F)
+    (map unique acc)
+    (let* ((tableau (car F)) (operation (cherche-elimination tableau)) (reste (cdr F)))
+      (if operation
+        (semtab-aux (append (map (lambda (x) (append x (remove operation tableau))) (elim-operation operation)) reste) acc)
+        (semtab-aux reste (append (list tableau) acc))
+      ))))
 
-
-
-
-
-
-
-
-
+(define (semtab liste-formule)
+  (semtab-aux (cree-liste-tableau liste-formule) '())
+)
 
 
 ; ---------------------------------------------------------------------------- ;
 ; -------------------------------Zone de tests-------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
-(contient-contradiction? (car test-contra-f))    ; doit donner #f
-(contient-contradiction? (car test-contra-t))    ; doit donner #t
-(contient-operateur? (car test-ouvert))          ; doit donner #f
-(est-ouvert? (car test-ouvert))                  ; doit donner #t
-(contient-operateur? (car test-ferme))           ; doit donner #t
-(est-ouvert? (car test-ferme))                   ; doit donner #f
 (elim-operation '(NOT (AND a b)))                ; doit donner (((NOT a)) ((NOT b)))
 (cherche-elimination test-semtab)                ; doit donner (NOT (OR c b))
 (display "\n")
-(cherche-elimination test-semtab)
+(semtab-aux (list test-semtab) '())
 ; ---------------------------------------------------------------------------- ;
 ; ---------------------------------FIN SEMTAB--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
