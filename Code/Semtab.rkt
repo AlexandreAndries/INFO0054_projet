@@ -62,7 +62,6 @@
         (a (cree-liste-tableau (ajout-tableau a)))
     )
 )
-(provide elim-operation)
 ; ---------------------------------------------------------------------------- ;
 ;Vérifie si le tableau entré contient une contradiction (ex: a et (NOT a))
 ;   précondition: tableau != null
@@ -100,6 +99,7 @@
         (if (not (equal? 'NOT (car prem-elem))) #t continue)))
   )
 )
+(provide contient-operateur?)
 ; ---------------------------------------------------------------------------- ;
 ;Vérifie si il y a des opérations et renvoie une formule depuis liste-formule.
 ;La fonction renvoie en priorité les formules qui ne créent qu'un tableau. (AND, NOT OR, NOT  IFTHEN).
@@ -155,6 +155,7 @@
                                 (semtab-aux (append (map (lambda (x) (append x (remove operation tableau))) (elim-operation operation)) reste) acc)
                                 (semtab-aux reste (append (list tableau) acc))))))))
 
+    (trace semtab-aux)
     (semtab-aux (list liste-formule) '())
   )
 )
