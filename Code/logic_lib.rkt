@@ -1,27 +1,13 @@
 #lang racket
+(require "Semtab.rkt")
 
 
+(define test-semtab '((OR a (NOT a))))
 
-(define (satisfiable? formule_propositionnel)
-  '()
-)
+(define (satisfiable? formule) (contient? #f (map contient-contradiction? (elim-operation formule))))
 
-(define (valid? formule_propositionnel)
-  '()
-)
+(define (tautology? formule) (not (contient? #f (map (lambda (x) (not (contient-contradiction? x))) (elim-operation formule)))))
 
-(define (tautology? formule_propositionnel)
-  '()
-)
+(define (contradiction? formule) (contient? #t (map (lambda (x) (contient-contradiction? x)) (elim-operation formule))))
 
-(define (contradiction? formule_propositionnel)
-  '()
-)
-
-(define (models formule_propositionnel)
-  '()
-)
-
-(define (counterexamples formule_propositionnel)
-  '()
-)
+(contradiction? '(AND a (NOT a)))

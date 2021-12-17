@@ -6,13 +6,13 @@
 ; # Projet  : INFO0054 - Programmation Fonctionelle                            ;
 ; # Date    : 11/12/2021                                                       ;
 ; ---------------------------------------------------------------------------- ;
-(require racket/trace)
 (require "tableau.rkt")
-
+(require racket/trace)
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------Définition des tableaux de tests--------------------- ;
 ; ---------------------------------------------------------------------------- ;
-(define test-semtab '(c (NOT b) (OR (OR a b) f)))
+(define test-semtab '(OR a (NOT a)))
+(define test '(b (NOT b) c (NOT b)))
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------Définition des fonctions locales--------------------- ;
 ; ---------------------------------------------------------------------------- ;
@@ -24,16 +24,25 @@
 ;         #f sinon
 (define (atom? x) (and (not (null? x)) (not (pair? x))))
 ; ---------------------------------------------------------------------------- ;
+;Vérifie si "x" appartient à "ls"
+;   précondition: x != null
+;
+;   retourne:
+;         #t si x appartient à ls
+;         #f sinon
 (define (contient? x ls) (if (member x ls) #t #f))
+(provide contient?)
 ; ---------------------------------------------------------------------------- ;
-(define (premier? bool operation) (if (eqv? bool (car operation)) #t #f))
-; ---------------------------------------------------------------------------- ;
-(define (unique ls) 
-  (if (null? ls)
-    '()
-    (cons (car ls) (unique (filter (lambda (x) (not (eqv? x (car ls)))) ls)))))
-
-(unique '((a) (a)))
+;Supprime tous les duplicats existant dans l
+;   précondition: l != null
+;
+;   retourne:
+;         une liste traité ne possèdant plus de duplicats
+(define (remove-duplicates l)
+  (cond ((null? l) '())
+        ((member (car l) (cdr l)) (remove-duplicates (cdr l)))
+        (else (cons (car l) (remove-duplicates (cdr l)))))
+)
 ; ---------------------------------------------------------------------------- ;
 ;Elimine les opérations dites simples en un ou deux tableaux maximum
 ;   précondition: operation != null
@@ -53,6 +62,7 @@
         (a (cree-liste-tableau (ajout-tableau a)))
     )
 )
+(provide elim-operation)
 ; ---------------------------------------------------------------------------- ;
 ;Vérifie si le tableau entré contient une contradiction (ex: a et (NOT a))
 ;   précondition: tableau != null
@@ -71,6 +81,7 @@
         (if (contient? (get-proposition-NOT prem-elem) reste-tab) #t continue)))
   )
 )
+(provide contient-contradiction?)
 ; ---------------------------------------------------------------------------- ;
 ;Vérifie si le tableau entré contient un opérateur binaire (AND/OR/IFTHEN)
 ;   précondition: tableau != null
@@ -90,19 +101,13 @@
   )
 )
 ; ---------------------------------------------------------------------------- ;
-;Vérifie si le tableau entré est ouvert (ou, sinon, fermé)
-;   précondition: tableau != null
+;Vérifie si il y a des opérations et renvoie une formule depuis liste-formule.
+;La fonction renvoie en priorité les formules qui ne créent qu'un tableau. (AND, NOT OR, NOT  IFTHEN).
+;   précondition: liste-formule != null && liste-formule contient des formules ou conditions
 ;
 ;   retourne:
-;         #t si tableau est ouvert (ne contient ni contra., ni opér. binaire)
-;         #f sinon (le tableau est alors fermé)
-(define (est-ouvert? tableau)
-  (cond ((contient-operateur? tableau) #f)
-        ((contient-contradiction? tableau) #f)
-        (else #t)
-  )
-)
-; ---------------------------------------------------------------------------- ;
+;         operation si il y a une opération de trouvée
+;         #f sinon (le tableau est alors ouvert/fermé)
 (define (cherche-elimination liste-formule)
   (letrec ((meilleur-formule? (lambda (ls)
                                 (if (null? ls)
@@ -119,20 +124,20 @@
                                       (a reste)
                                     )))))
 
-              (formule? (lambda (ls)
-                          (if (null? ls)
-                            #f
-                            (let ((operation (car ls)) (reste (formule? (cdr ls))))
-                              (match operation
-                                      ((list 'AND a b) reste)
-                                      ((list 'NOT (list 'IFTHEN a b)) reste)
-                                      ((list 'NOT (list 'OR a b)) reste)
-                                      ((list 'NOT (list 'NOT a)) reste)
-                                      ((list 'NOT (list 'AND a b)) operation)
-                                      ((list 'OR a b) operation)
-                                      ((list 'IFTHEN a b) operation)
-                                      (a reste)
-                                    ))))))
+          (formule? (lambda (ls)
+                      (if (null? ls)
+                        #f
+                        (let ((operation (car ls)) (reste (formule? (cdr ls))))
+                          (match operation
+                                  ((list 'AND a b) reste)
+                                  ((list 'NOT (list 'IFTHEN a b)) reste)
+                                  ((list 'NOT (list 'OR a b)) reste)
+                                  ((list 'NOT (list 'NOT a)) reste)
+                                  ((list 'NOT (list 'AND a b)) operation)
+                                  ((list 'OR a b) operation)
+                                  ((list 'IFTHEN a b) operation)
+                                  (a reste)
+                                ))))))
 
     (if (meilleur-formule? liste-formule)
       (meilleur-formule? liste-formule)
@@ -141,27 +146,19 @@
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------------------SEMTAB----------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
-(define (semtab-aux F acc)
-  (if (null? F)
-    (map unique acc)
-    (let* ((tableau (car F)) (operation (cherche-elimination tableau)) (reste (cdr F)))
-      (if operation
-        (semtab-aux (append (map (lambda (x) (append x (remove operation tableau))) (elim-operation operation)) reste) acc)
-        (semtab-aux reste (append (list tableau) acc))
-      ))))
-
 (define (semtab liste-formule)
-  (semtab-aux (cree-liste-tableau liste-formule) '())
+  (letrec ((semtab-aux (lambda (F acc)
+                          (if (null? F)
+                            (map remove-duplicates acc)
+                            (let* ((tableau (car F)) (operation (cherche-elimination tableau)) (reste (cdr F)))
+                              (if operation
+                                (semtab-aux (append (map (lambda (x) (append x (remove operation tableau))) (elim-operation operation)) reste) acc)
+                                (semtab-aux reste (append (list tableau) acc))))))))
+
+    (semtab-aux (list liste-formule) '())
+  )
 )
-
-
-; ---------------------------------------------------------------------------- ;
-; -------------------------------Zone de tests-------------------------------- ;
-; ---------------------------------------------------------------------------- ;
-(elim-operation '(NOT (AND a b)))                ; doit donner (((NOT a)) ((NOT b)))
-(cherche-elimination test-semtab)                ; doit donner (NOT (OR c b))
-(display "\n")
-(semtab-aux (list test-semtab) '())
+(provide semtab)
 ; ---------------------------------------------------------------------------- ;
 ; ---------------------------------FIN SEMTAB--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
