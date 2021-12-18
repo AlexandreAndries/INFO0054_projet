@@ -33,8 +33,22 @@
             )
         )
 )
-
-(define (elements liste-formule) (remove-duplicates (map elements-ls liste-formule)))
+; ---------------------------------------------------------------------------- ;
+(define (flatten lst)
+  (cond
+    ((null? lst) empty)
+    ((list? (car lst)) (append (flatten (car lst)) (flatten (cdr lst))))
+    (else (cons (car lst) (flatten (cdr lst))))
+  )
+)
+; ---------------------------------------------------------------------------- ;
+(define (elements liste-formule)
+        (remove-duplicates
+          (flatten
+            (remove-duplicates (map elements-ls liste-formule))
+          )
+        )
+)
 ; ---------------------------------------------------------------------------- ;
 ; -------------------------------FONCTIONS LOGIC------------------------------ ;
 ; ---------------------------------------------------------------------------- ;
