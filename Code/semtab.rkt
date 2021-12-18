@@ -48,7 +48,8 @@
 ;   précondition: operation != null
 ;
 ;   retourne:
-;         liste contenant les différents tableaux d'opération (1 ou 2 tableau dans la liste en fonction des cas)
+;         liste contenant les différents tableaux d'opération
+;         (1 ou 2 tableau dans la liste en fonction des cas)
 (define (elim-operation operation)
   (match operation
         ((list 'AND a b) (cree-liste-tableau (ajout-tableau a b)))
@@ -102,8 +103,11 @@
 (provide contient-operateur?)
 ; ---------------------------------------------------------------------------- ;
 ;Vérifie si il y a des opérations et renvoie une formule depuis liste-formule.
-;La fonction renvoie en priorité les formules qui ne créent qu'un tableau. (AND, NOT OR, NOT  IFTHEN).
-;   précondition: liste-formule != null && liste-formule contient des formules ou conditions
+;La fonction renvoie en priorité les formules qui ne créent qu'un tableau.
+;(AND, NOT OR, NOT  IFTHEN).
+;
+;   précondition: liste-formule != null && liste-formule contient des formules
+;                 ou conditions.
 ;
 ;   retourne:
 ;         operation si il y a une opération de trouvée
@@ -148,12 +152,12 @@
 ; ---------------------------------------------------------------------------- ;
 (define (semtab liste-formule)
   (letrec ((semtab-aux (lambda (F acc)
-                          (if (null? F)
-                            (map remove-duplicates acc)
-                            (let* ((tableau (car F)) (operation (cherche-elimination tableau)) (reste (cdr F)))
-                              (if operation
-                                (semtab-aux (append (map (lambda (x) (append x (remove operation tableau))) (elim-operation operation)) reste) acc)
-                                (semtab-aux reste (append (list tableau) acc))))))))
+            (if (null? F)
+              (map remove-duplicates acc)
+              (let* ((tableau (car F)) (operation (cherche-elimination tableau)) (reste (cdr F)))
+                (if operation
+                  (semtab-aux (append (map (lambda (x) (append x (remove operation tableau))) (elim-operation operation)) reste) acc)
+                  (semtab-aux reste (append (list tableau) acc))))))))
 
     (trace semtab-aux)
     (semtab-aux (list liste-formule) '())
