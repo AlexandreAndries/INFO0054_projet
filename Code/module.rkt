@@ -29,45 +29,32 @@
 ;         #f sinon
 (define (atom? x) (and (not (null? x)) (not (pair? x))))
 ; ---------------------------------------------------------------------------- ;
-(define (elements-ls l)
-        (if (null? l)
-            '()
-            (let* ((head (car l)) (tail (cdr l)) (continue (elements-ls tail)))
-                  (cond ((not (atom? head)) (cons (cdr head) continue))
-                        ((member head tail) continue)
-                        (else (cons head continue))
-                  )
-            )
-        )
-)
-; ---------------------------------------------------------------------------- ;
 (define (elements liste-formule)
-        (remove-duplicates
-          (flatten
-           (map elements-ls liste-formule)
+        (letrec
+          ((elements-aux (lambda (liste-formule)
+                                  (if (null? liste-formule)
+                                      '()
+                                      (let* ((ls (flatten liste-formule))
+                                             (head (car ls))
+                                             (reste (elements (cdr ls))))
+                                          (match head
+                                                  ('NOT reste)
+                                                  ('IFTHEN reste)
+                                                  ('AND reste)
+                                                  ('OR reste)
+                                                  (a (cons head reste))
+                                          )
+                                      )
+                                  )
+                         )
+           )
           )
+
+          (remove-duplicates (elements-aux liste-formule))
         )
 )
 ; ---------------------------------------------------------------------------- ;
-(define (models-rec ls elem)
-        (cond ((atom? elem) (if (member elem ls)
-                            '()
-                            (list (cons ls elem) (cons ls (mk-NOT elem)))
-                            )
-              )
-              (else (if (member (car elem) ls)
-                        (models-rec ls (cdr elem))
-                        ((list (cons ls elem) (cons ls (mk-NOT elem)) (models-rec ls (cdr elem))))
-                    )
-              )
-        )
-)
-; ---------------------------------------------------------------------------- ;
-(define (models-aux ls)
-        (let ((elem (elements ls)))
-              (models-rec ls elem)
-        )
-)
+
 ; ---------------------------------------------------------------------------- ;
 ; -------------------------------FONCTIONS LOGIC------------------------------ ;
 ; ---------------------------------------------------------------------------- ;
@@ -80,8 +67,8 @@
 (define (contradiction? formule) (contient? #t (map (lambda (x) (contient-contradiction? x)) (semtab (cree-liste-tableau formule))))
 )
 ; ---------------------------------------------------------------------------- ;
-(define (models liste-formule) (map models-aux (semtab liste-formule))
-)
+; (define (models liste-formule)
+; )
 ; ---------------------------------------------------------------------------- ;
 ;(define (counterexamples? formule) (contient? #t (map (lambda (x y) (satisfiable? (append x (not y)))) (semtab (cree-liste-tableau formule))))
 ;)
@@ -93,11 +80,10 @@
 ;(satisfiable? test-satisfiable)              ; doit donner #t
 ;(contradiction? test-contradiction)          ; doit donner #t
 
-(define test (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
+; (define test (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
 
-(display 'test= )
-
-(models '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r))))
+(elements (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
+(map elements (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------------------FIN TEST--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
