@@ -75,10 +75,10 @@
     ;consequent
     #f
     ;else
-    (let* ((prem-elem (car tableau)) (reste-tab (cdr tableau)) (continue (contient-contradiction? reste-tab)))
-      (if (atom? prem-elem)
-        (if (contient? (mk-NOT prem-elem) reste-tab) #t continue)
-        (if (contient? (get-proposition-NOT prem-elem) reste-tab) #t continue)))
+    (let* ((head (car tableau)) (tail (cdr tableau)) (continue (contient-contradiction? tail)))
+      (if (atom? head)
+        (if (contient? (mk-NOT head) tail) #t continue)
+        (if (contient? (get-proposition-NOT head) tail) #t continue)))
   )
 )
 (provide contient-contradiction?)
@@ -94,10 +94,10 @@
     ;consequent
     #f
     ;else
-    (let* ((prem-elem (car tableau)) (reste-tab (cdr tableau)) (continue (contient-operateur? reste-tab)))
-      (if (atom? prem-elem)
+    (let* ((head (car tableau)) (tail (cdr tableau)) (continue (contient-operateur? tail)))
+      (if (atom? head)
         continue
-        (if (not (equal? 'NOT (car prem-elem))) #t continue)))
+        (if (not (equal? 'NOT (car head))) #t continue)))
   )
 )
 (provide contient-operateur?)

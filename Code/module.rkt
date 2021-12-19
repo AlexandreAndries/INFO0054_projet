@@ -54,7 +54,18 @@
         )
 )
 ; ---------------------------------------------------------------------------- ;
+(define (models-aux elem ls res)
+        (for* ([i elem]
+                [subls ls])
 
+                (if (member i (flatten subls))
+                    (list res subls)
+                    (list res (list subls i) (list subls (mk-NOT i)))
+                )
+        )
+
+        (display res)
+)
 ; ---------------------------------------------------------------------------- ;
 ; -------------------------------FONCTIONS LOGIC------------------------------ ;
 ; ---------------------------------------------------------------------------- ;
@@ -67,8 +78,13 @@
 (define (contradiction? formule) (contient? #t (map (lambda (x) (contient-contradiction? x)) (semtab (cree-liste-tableau formule))))
 )
 ; ---------------------------------------------------------------------------- ;
-; (define (models liste-formule)
-; )
+(define (models liste-formule)
+        (let* ((ls (filter-not contient-contradiction? (semtab liste-formule)))
+              (elem (elements ls)))
+
+              (models-aux elem ls '())
+        )
+)
 ; ---------------------------------------------------------------------------- ;
 ;(define (counterexamples? formule) (contient? #t (map (lambda (x y) (satisfiable? (append x (not y)))) (semtab (cree-liste-tableau formule))))
 ;)
@@ -82,8 +98,11 @@
 
 ; (define test (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
 
-(elements (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
-(map elements (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
+; (elements (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
+; (map elements (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
+
+(models '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r))))
+
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------------------FIN TEST--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
