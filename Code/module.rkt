@@ -50,13 +50,16 @@
 )
 ; ---------------------------------------------------------------------------- ;
 (define (models-rec ls elem)
-        (if (null? elem)
-            '()
-            (let* ((head (car elem)) (tail (cdr elem)) (continue (models-rec tail)))
-                  (if (member head ls)
-                      ; construire list avec ls et head et mk-NOT head.. difficile
-                  )
-            )
+        (cond ((atom? elem) (if (member elem ls)
+                            '()
+                            (list (cons ls elem) (cons ls (mk-NOT elem)))
+                            )
+              )
+              (else (if (member (car elem) ls)
+                        (models-rec ls (cdr elem))
+                        ((list (cons ls elem) (cons ls (mk-NOT elem)) (models-rec ls (cdr elem))))
+                    )
+              )
         )
 )
 ; ---------------------------------------------------------------------------- ;
@@ -93,6 +96,7 @@
 (define test (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
 
 (display 'test= )
+
 (models '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r))))
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------------------FIN TEST--------------------------------- ;
