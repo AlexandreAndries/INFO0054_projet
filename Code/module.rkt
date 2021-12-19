@@ -18,9 +18,16 @@
 
 (define test-elements '((a (NOT b)) (a c) (a b (NOT c))))
 
-(define (atom? x) (and (not (null? x)) (not (pair? x))))
 ; ---------------------------------------------------------------------------- ;
 ; ------------------------------fonctions locales----------------------------- ;
+; ---------------------------------------------------------------------------- ;
+;Vérifie si la liste x est un atome
+;   précondition: x != null
+;
+;   retourne:
+;         #t si x est un atome
+;         #f sinon
+(define (atom? x) (and (not (null? x)) (not (pair? x))))
 ; ---------------------------------------------------------------------------- ;
 (define (elements-ls l)
         (if (null? l)
@@ -34,19 +41,28 @@
         )
 )
 ; ---------------------------------------------------------------------------- ;
-(define (flatten lst)
-  (cond
-    ((null? lst) empty)
-    ((list? (car lst)) (append (flatten (car lst)) (flatten (cdr lst))))
-    (else (cons (car lst) (flatten (cdr lst))))
-  )
-)
-; ---------------------------------------------------------------------------- ;
 (define (elements liste-formule)
         (remove-duplicates
           (flatten
-            (remove-duplicates (map elements-ls liste-formule))
+           (map elements-ls liste-formule)
           )
+        )
+)
+; ---------------------------------------------------------------------------- ;
+(define (models-rec ls elem)
+        (if (null? elem)
+            '()
+            (let* ((head (car elem)) (tail (cdr elem)) (continue (models-rec tail)))
+                  (if (member head ls)
+                      ; construire list avec ls et head et mk-NOT head.. difficile
+                  )
+            )
+        )
+)
+; ---------------------------------------------------------------------------- ;
+(define (models-aux ls)
+        (let ((elem (elements ls)))
+              (models-rec ls elem)
         )
 )
 ; ---------------------------------------------------------------------------- ;
@@ -61,25 +77,23 @@
 (define (contradiction? formule) (contient? #t (map (lambda (x) (contient-contradiction? x)) (semtab (cree-liste-tableau formule))))
 )
 ; ---------------------------------------------------------------------------- ;
-;(define (models liste-formule)
+(define (models liste-formule) (map models-aux (semtab liste-formule))
+)
+; ---------------------------------------------------------------------------- ;
+;(define (counterexamples? formule) (contient? #t (map (lambda (x y) (satisfiable? (append x (not y)))) (semtab (cree-liste-tableau formule))))
 ;)
 ; ---------------------------------------------------------------------------- ;
-(define (countrexemples formule) (contient? #t (map (lambda (x y) (satisfiable? (append x (not y)))) (semtab (cree-liste-tableau formule))))
-)
 ; ---------------------------------------------------------------------------- ;
 ; ---------------------------------------TEST--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
 ;(tautology? test-tautology)                  ; doit donner #t
 ;(satisfiable? test-satisfiable)              ; doit donner #t
 ;(contradiction? test-contradiction)          ; doit donner #t
-; ---------------------------------------------------------------------------- ;
-; -----------------------------------FIN TEST--------------------------------- ;
-; ---------------------------------------------------------------------------- ;
-
-
-
 
 (define test (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
 
-(display 'next= )
-(elements test)
+(display 'test= )
+(models '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r))))
+; ---------------------------------------------------------------------------- ;
+; -----------------------------------FIN TEST--------------------------------- ;
+; ---------------------------------------------------------------------------- ;
