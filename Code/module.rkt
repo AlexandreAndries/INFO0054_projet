@@ -271,9 +271,9 @@
 (display 'model_test3==> )
 (models test-3)                              ; doit donner '(b c (NOT a))
 
-(conterexamples? 'a '((OR a (NOT a))))
+(display 'conterexamples test==> )
+(conterexamples? 'a '((OR a (NOT a))))     ; doit afficher '(((NOTa)))
 
-;(valid? 'a '((OR a (NOT a))))
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------------------FIN TEST--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
