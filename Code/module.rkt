@@ -199,6 +199,20 @@
 )
 ; ---------------------------------------------------------------------------- ;
 
+(define (conterexamples? formule list-formule)
+    (let ((new-liste (append list-formule (list (mk-NOT formule)))))
+         (if (satisfiable? new-liste)
+            (filter-not contient-contradiction? (semtab new-liste))
+            #f
+        )
+    )
+)
+
+; ---------------------------------------------------------------------------- ;
+ (define (valid? formule list-formule)
+      (or (subset-eqv? (models(list formule))(models list-formule)) (not(satisfiable? (append list-formule (list (mk-NOT formule)))))
+)
+)
 ; ---------------------------------------------------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
 ; ---------------------------------------TEST--------------------------------- ;
@@ -221,6 +235,10 @@
 (semtab test-3)
 (display 'model_test3==> )
 (models test-3)                              ; doit donner '(b c (NOT a))
+
+(conterexamples? 'a '((OR a (NOT a))))
+
+;(valid? 'a '((OR a (NOT a))))
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------------------FIN TEST--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
