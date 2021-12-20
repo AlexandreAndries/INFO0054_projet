@@ -272,7 +272,7 @@
 (models test-3)                              ; doit donner '(b c (NOT a))
 
 (display 'conterexamples test==> )
-(conterexamples? 'a '((OR a (NOT a))))     ; doit afficher '(((NOTa)))
+(conterexamples? 'a '((OR a (NOT a))))     ; doit afficher '(((NOT a)))
 
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------------------FIN TEST--------------------------------- ;
