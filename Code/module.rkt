@@ -38,6 +38,7 @@
 ;   retourne:
 ;         la nouvelle liste contenant toutes la variables propositionnelles de
 ;         liste-formule.
+          ; ------------------------FONCTIONNE-------------------- ;
 (define (elements liste-formule)
         (letrec
           ((elements-aux (lambda (liste-formule)
@@ -65,7 +66,7 @@
 ; ---------------------------------------------------------------------------- ;
 ;Vérifie si chaque tableau de la liste contient bien la variable propositionnelle
 ; elem, et sinon, deux tableau basé sur le tableau initial: un avec elem en plus,
-; l'autre avec NOT elem en plus afin de créer des modèles.
+; l'autre avec NOT elem en plus afin de créer des modèles. (ACCUMULATEUR)
 ;
 ;   précondition: liste-formule != null && liste-formule contient des formules
 ;                 ou conditions.
@@ -77,7 +78,9 @@
 (define (models-aux-acc elem ls acc)
         (if (null? ls)
             acc
-            (let* ((head (car ls)) (tail (cdr ls)) (continue (models-aux-acc elem tail acc)))
+            (let* ((head (car ls))
+                   (tail (cdr ls))
+                   (continue (models-aux-acc elem tail acc)))
                   (if (or (contient? elem head) (contient? (list 'NOT elem) head))
                       (cons head continue)
                       (append (list (append head (list elem)))
@@ -90,7 +93,7 @@
 ; ---------------------------------------------------------------------------- ;
 ;Applique models-aux-acc à la liste ls pour chaque variable comprise dans
 ; elements et accumule le résultat dans output. Le résultat étant la liste
-; de tous les modèles.
+; de tous les modèles. (ACCUMULATEUR)
 ;
 ;   précondition: liste-formule != null && liste-formule contient des formules
 ;                 ou conditions.
@@ -98,13 +101,50 @@
 ;
 ;   retourne:
 ;         la nouvelle liste contenant tous les modèles de la formule ls
-          ; ---------------A MODIFIER - REPETITIONS------------- ;
+          ; ------------------------FONCTIONNE-------------------- ;
 (define (models-aux elements ls output)
         (if (null? elements)
             output
-            (let* ((head (car elements)) (tail (cdr elements)) (continue (models-aux tail ls output)))
-                  (cons (models-aux-acc head ls output) continue)
+            (let* ((head (car elements))
+                   (tail (cdr elements))
+                   (continue (models-aux tail ls output)))
+                  (append (models-aux-acc head ls output) continue)
             )
+        )
+)
+; ---------------------------------------------------------------------------- ;
+;Vérifie si deux tableaux contiennent les mêmes éléments.
+;
+;   précondition: set1 != null && set2!= null
+;
+;   retourne:
+;         #t si set1 et set2 ont les mêmes éléments (peu importe l'ordre).
+;         #f sinon.
+          ; ------------------------FONCTIONNE-------------------- ;
+(define (subset-eqv? set1 set2)
+        (equal? (list->set set1)
+                (list->set set2)
+        )
+)
+; ---------------------------------------------------------------------------- ;
+;Renvoie une liste de tableaux sans tableaux équivalents. La liste ne contient
+; que des tableaux valides, sans répétitions.
+;
+;   précondition: ls != null
+;
+;   retourne:
+;         A COMPLETER
+          ; ------------------------FONCTIONNE-------------------- ;
+(define (remove-eqv-subsets ls acc)
+        (if (null? ls)
+        acc
+        (let* ((head (car ls))
+               (tail (cdr ls))
+               (continue (remove-eqv-subsets tail acc))
+              )
+              (append continue (filter (lambda (x) (subset-eqv? head x)) tail))
+
+        )
         )
 )
 ; ---------------------------------------------------------------------------- ;
@@ -125,9 +165,12 @@
 ; A SPECIFIER
 (define (models liste-formule)
         (let* ((ls (filter-not contient-contradiction? (semtab liste-formule)))
-              (elem (elements ls)))
+              (elem (elements ls))
+              (len (length elem))
+              (set (remove-duplicates (filter (lambda (x) (eqv? len (length x))) (models-aux elem ls '()))))
+              )
 
-              (remove-duplicates (models-aux elem ls '()))
+              (remove-eqv-subsets set '())
         )
 )
 ; ---------------------------------------------------------------------------- ;
@@ -140,15 +183,19 @@
 ;(tautology? test-tautology)                  ; doit donner #t
 ;(satisfiable? test-satisfiable)              ; doit donner #t
 ;(contradiction? test-contradiction)          ; doit donner #t
+; ---------------------------------------------------------------------------- ;
 
-(define test '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r))))
+; (define test '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r))))
+(define test-2 '((AND (OR a b) (NOT c)) (AND a b)))
 
-; (models-aux-acc 'q (filter-not contient-contradiction? test) '())
+; (semtab test)
+; (semtab test-2)
 
-(models test)
+; (filter-not contient-contradiction? (semtab test-2))
+(models-aux (elements test-2) (filter-not contient-contradiction? (semtab test-2)) '())
 
-
-
+; (models test)
+; (models test-2)
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------------------FIN TEST--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
