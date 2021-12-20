@@ -170,7 +170,7 @@
 (define (satisfiable? liste-formule) (contient? #f (map contient-contradiction? (semtab liste-formule)))
 )
 ; ---------------------------------------------------------------------------- ;
-;Pour verifier si une formule est une tautologie (toujours faux)
+;Pour verifier si une formule est une tautologie (toujours Vraie)
 ;
 ;   précondition: formule != null
 ;
