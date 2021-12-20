@@ -55,7 +55,9 @@
         ((list 'AND a b) (cree-liste-tableau (ajout-tableau a b)))
         ((list 'OR a b) (cree-liste-tableau (ajout-tableau a) (ajout-tableau b)))
         ((list 'IFTHEN a b) (cree-liste-tableau (ajout-tableau (mk-NOT a)) (ajout-tableau b)))
+        ((list 'NAND a b) (cree-liste-tableau (ajout-tableau (mk-NOT a)) (ajout-tableau (mk-NOT b))))
         ((list 'EQUIV a b) (cree-liste-tableau (ajout-tableau a b) (ajout-tableau (mk-NOT a) (mk-NOT b))))
+        ((list 'XOR a b) (cree-liste-tableau (ajout-tableau a (mk-NOT b)) (ajout-tableau (mk-NOT a) b)))
         ((list 'NOT (list 'AND a b)) (cree-liste-tableau (ajout-tableau (mk-NOT a)) (ajout-tableau (mk-NOT b))))
         ((list 'NOT (list 'OR a b)) (cree-liste-tableau (ajout-tableau (mk-NOT a) (mk-NOT b))))
         ((list 'NOT (list 'IFTHEN a b)) (cree-liste-tableau (ajout-tableau a (mk-NOT b))))
@@ -121,6 +123,8 @@
                                   (let ((operation (car ls)) (reste (meilleur-formule? (cdr ls))))
                                     (match operation
                                       ((list 'AND a b) operation)
+                                      ((list 'NAND a b) reste)
+                                      ((list 'XOR a b) reste)
                                       ((list 'NOT (list 'IFTHEN a b)) reste)
                                       ((list 'NOT (list 'EQUIV a b)) reste)
                                       ((list 'NOT (list 'OR a b)) operation)
@@ -138,6 +142,8 @@
                         (let ((operation (car ls)) (reste (formule? (cdr ls))))
                           (match operation
                                   ((list 'AND a b) reste)
+                                  ((list 'NAND a b) operation)
+                                  ((list 'XOR a b) operation)
                                   ((list 'NOT (list 'IFTHEN a b)) reste)
                                   ((list 'NOT (list 'EQUIV a b)) operation)
                                   ((list 'NOT (list 'OR a b)) reste)
