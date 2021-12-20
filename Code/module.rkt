@@ -160,15 +160,36 @@
 ; ---------------------------------------------------------------------------- ;
 ; -------------------------------FONCTIONS LOGIC------------------------------ ;
 ; ---------------------------------------------------------------------------- ;
-; A SPECIFIER
+;Pour verifier si une liste de formule est satisfaisable ou pas
+;
+;   précondition: liste-formule != null
+;
+;   retourne:
+;         soit #t soit #f
+
 (define (satisfiable? liste-formule) (contient? #f (map contient-contradiction? (semtab liste-formule)))
 )
 ; ---------------------------------------------------------------------------- ;
-; A SPECIFIER
+;Pour verifier si une formule est une tautologie (toujours faux)
+;
+;   précondition: formule != null
+;
+;
+;   retourne:
+;         soit #t soit #f
+
 (define (tautology? formule) (not (contient? #f (map (lambda (x) (not (contient-contradiction? x))) (semtab (cree-liste-tableau formule)))))
 )
 ; ---------------------------------------------------------------------------- ;
-; A SPECIFIER
+;Pour verifier si une formule est une contradiction (toujours faux)
+;
+;   précondition: formule != null
+;
+;
+;   retourne:
+;         soit #t soit #f
+
+
 (define (contradiction? formule) (contient? #t (map (lambda (x) (contient-contradiction? x)) (semtab (cree-liste-tableau formule))))
 )
 ; ---------------------------------------------------------------------------- ;
@@ -198,6 +219,13 @@
         )
 )
 ; ---------------------------------------------------------------------------- ;
+;Pour verifier et renvoier la liste des counterexamples
+;
+;   précondition: liste-formule != null
+;                 formule       != null
+;
+;   retourne:
+;         la liste des conterexamples
 
 (define (conterexamples? formule list-formule)
     (let ((new-liste (append list-formule (list (mk-NOT formule)))))
@@ -209,6 +237,13 @@
 )
 
 ; ---------------------------------------------------------------------------- ;
+;pour verifier valid ou pas
+;
+;   précondition: liste-formule != null
+;                 formule       != null
+;
+;   retourne:
+;         soit #t soit #f
  (define (valid? formule list-formule)
       (or (subset-eqv? (models(list formule))(models list-formule)) (not(satisfiable? (append list-formule (list (mk-NOT formule)))))
 )
