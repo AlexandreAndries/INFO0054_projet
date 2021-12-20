@@ -65,7 +65,7 @@
 )
 ; ---------------------------------------------------------------------------- ;
 ;Vérifie si chaque tableau de la liste contient bien la variable propositionnelle
-; elem, et sinon, deux tableau basé sur le tableau initial: un avec elem en plus,
+; elem, et sinon, crée deux tableau basé sur le tableau initial: un avec elem en plus,
 ; l'autre avec NOT elem en plus afin de créer des modèles. (ACCUMULATEUR)
 ;
 ;   précondition: liste-formule != null && liste-formule contient des formules
@@ -170,7 +170,11 @@
               (set (remove-duplicates (filter (lambda (x) (eqv? len (length x))) (models-aux elem ls '()))))
               )
 
-              (remove-eqv-subsets set '())
+              (if (eqv? (length set) 1)
+                  set
+                  (remove-eqv-subsets set '())
+              )
+
         )
 )
 ; ---------------------------------------------------------------------------- ;
@@ -185,17 +189,20 @@
 ;(contradiction? test-contradiction)          ; doit donner #t
 ; ---------------------------------------------------------------------------- ;
 
-; (define test '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r))))
+(define test '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r))))
 (define test-2 '((AND (OR a b) (NOT c)) (AND a b)))
 
-; (semtab test)
-; (semtab test-2)
+(display 'test1==> )
+(semtab test)
+(display 'test2==> )
+(semtab test-2)
 
 ; (filter-not contient-contradiction? (semtab test-2))
-(models-aux (elements test-2) (filter-not contient-contradiction? (semtab test-2)) '())
-
-; (models test)
-; (models test-2)
+; (models-aux (elements test-2) (filter-not contient-contradiction? (semtab test-2)) '())
+(display 'model_test1==> )
+(models test)
+(display 'model_test2==> )
+(models test-2)
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------------------FIN TEST--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
