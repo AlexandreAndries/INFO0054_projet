@@ -29,6 +29,15 @@
 ;         #f sinon
 (define (atom? x) (and (not (null? x)) (not (pair? x))))
 ; ---------------------------------------------------------------------------- ;
+;Renvoie la liste des variables propositionnelles contenue dans liste-formule.
+;
+;   précondition: liste-formule != null && liste-formule contient des formules
+;                 ou conditions.
+;
+;
+;   retourne:
+;         la nouvelle liste contenant toutes la variables propositionnelles de
+;         liste-formule.
 (define (elements liste-formule)
         (letrec
           ((elements-aux (lambda (liste-formule)
@@ -54,35 +63,71 @@
         )
 )
 ; ---------------------------------------------------------------------------- ;
-(define (models-aux elem ls res)
-        (for* ([i elem]
-                [subls ls])
-
-                (if (member i (flatten subls))
-                    (list res subls)
-                    (list res (list subls i) (list subls (mk-NOT i)))
-                )
+;Vérifie si chaque tableau de la liste contient bien la variable propositionnelle
+; elem, et sinon, deux tableau basé sur le tableau initial: un avec elem en plus,
+; l'autre avec NOT elem en plus afin de créer des modèles.
+;
+;   précondition: liste-formule != null && liste-formule contient des formules
+;                 ou conditions.
+;                 elem != NULL && elem contient un élément de la Formule de base.
+;
+;   retourne:
+;         la nouvelle liste contenant tous les modèles comprenant elem.
+          ; ------------------------FONCTIONNE-------------------- ;
+(define (models-aux-acc elem ls acc)
+        (if (null? ls)
+            acc
+            (let* ((head (car ls)) (tail (cdr ls)) (continue (models-aux-acc elem tail acc)))
+                  (if (or (contient? elem head) (contient? (list 'NOT elem) head))
+                      (cons head continue)
+                      (append (list (append head (list elem)))
+                              (list (append head (list (mk-NOT elem))))
+                              continue)
+                  )
+            )
         )
-
-        (display res)
+)
+; ---------------------------------------------------------------------------- ;
+;Applique models-aux-acc à la liste ls pour chaque variable comprise dans
+; elements et accumule le résultat dans output. Le résultat étant la liste
+; de tous les modèles.
+;
+;   précondition: liste-formule != null && liste-formule contient des formules
+;                 ou conditions.
+;                 elem != NULL && elem contient un élément de la Formule de base.
+;
+;   retourne:
+;         la nouvelle liste contenant tous les modèles de la formule ls
+          ; ---------------A MODIFIER - REPETITIONS------------- ;
+(define (models-aux elements ls output)
+        (if (null? elements)
+            output
+            (let* ((head (car elements)) (tail (cdr elements)) (continue (models-aux tail ls output)))
+                  (cons (models-aux-acc head ls output) continue)
+            )
+        )
 )
 ; ---------------------------------------------------------------------------- ;
 ; -------------------------------FONCTIONS LOGIC------------------------------ ;
 ; ---------------------------------------------------------------------------- ;
+; A SPECIFIER
 (define (satisfiable? liste-formule) (contient? #f (map contient-contradiction? (semtab liste-formule)))
 )
 ; ---------------------------------------------------------------------------- ;
+; A SPECIFIER
 (define (tautology? formule) (not (contient? #f (map (lambda (x) (not (contient-contradiction? x))) (semtab (cree-liste-tableau formule)))))
 )
 ; ---------------------------------------------------------------------------- ;
+; A SPECIFIER
 (define (contradiction? formule) (contient? #t (map (lambda (x) (contient-contradiction? x)) (semtab (cree-liste-tableau formule))))
 )
 ; ---------------------------------------------------------------------------- ;
+; A SPECIFIER
 (define (models liste-formule)
         (let* ((ls (filter-not contient-contradiction? (semtab liste-formule)))
               (elem (elements ls)))
 
-              (models-aux elem ls '())
+              (remove-duplicates (models-aux elem ls '()))
         )
 )
 ; ---------------------------------------------------------------------------- ;
@@ -96,12 +141,13 @@
 ;(satisfiable? test-satisfiable)              ; doit donner #t
 ;(contradiction? test-contradiction)          ; doit donner #t
 
-; (define test (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
+(define test '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r))))
 
-; (elements (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
-; (map elements (semtab '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r)))))
+; (models-aux-acc 'q (filter-not contient-contradiction? test) '())
 
-(models '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r))))
+(models test)
+
+
 
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------------------FIN TEST--------------------------------- ;

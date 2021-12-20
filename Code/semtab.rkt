@@ -159,7 +159,7 @@
                   (semtab-aux (append (map (lambda (x) (append x (remove operation tableau))) (elim-operation operation)) reste) acc)
                   (semtab-aux reste (append (list tableau) acc))))))))
 
-    (trace semtab-aux)
+    ; (trace semtab-aux)
     (semtab-aux (list liste-formule) '())
   )
 )
