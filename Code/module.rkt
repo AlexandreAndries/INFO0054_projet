@@ -15,9 +15,10 @@
 (define test-tautology '(OR a (NOT a)))
 (define test-satisfiable '(a (NOT b) (IFTHEN (NOT b) c)))
 (define test-contradiction '(AND a (OR b (NOT a))))
-
 (define test-elements '((a (NOT b)) (a c) (a b (NOT c))))
-
+(define test-1 '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r))))
+(define test-2 '((AND (OR a b) (NOT c)) (AND a b)))
+(define test-3 '((IFTHEN a b) (AND (OR (NOT a) b) c)))
 ; ---------------------------------------------------------------------------- ;
 ; ------------------------------fonctions locales----------------------------- ;
 ; ---------------------------------------------------------------------------- ;
@@ -38,7 +39,6 @@
 ;   retourne:
 ;         la nouvelle liste contenant toutes la variables propositionnelles de
 ;         liste-formule.
-          ; ------------------------FONCTIONNE-------------------- ;
 (define (elements liste-formule)
         (letrec
           ((elements-aux (lambda (liste-formule)
@@ -74,7 +74,6 @@
 ;
 ;   retourne:
 ;         la nouvelle liste contenant tous les modèles comprenant elem.
-          ; ------------------------FONCTIONNE-------------------- ;
 (define (models-aux-acc elem ls acc)
         (if (null? ls)
             acc
@@ -101,7 +100,6 @@
 ;
 ;   retourne:
 ;         la nouvelle liste contenant tous les modèles de la formule ls
-          ; ------------------------FONCTIONNE-------------------- ;
 (define (models-aux elements ls output)
         (if (null? elements)
             output
@@ -120,10 +118,23 @@
 ;   retourne:
 ;         #t si set1 et set2 ont les mêmes éléments (peu importe l'ordre).
 ;         #f sinon.
-          ; ------------------------FONCTIONNE-------------------- ;
 (define (subset-eqv? set1 set2)
         (equal? (list->set set1)
                 (list->set set2)
+        )
+)
+; ---------------------------------------------------------------------------- ;
+;Vérifie si tous les tableaux d'un liste de tableaux sont équivalents (ou non)
+;
+;   précondition: ls != null
+;
+;   retourne:
+;         #t si tous les tableaux sont équivalents dans la liste
+;         #f sinon.
+(define (are-subsets-eqv? ls)
+        (andmap (lambda (x) (subset-eqv? x (car ls))
+                )
+                ls
         )
 )
 ; ---------------------------------------------------------------------------- ;
@@ -133,18 +144,17 @@
 ;   précondition: ls != null
 ;
 ;   retourne:
-;         A COMPLETER
-          ; ------------------------FONCTIONNE-------------------- ;
+;         la nouvelle liste, exempte de tableaux doublons.
 (define (remove-eqv-subsets ls acc)
         (if (null? ls)
-        acc
-        (let* ((head (car ls))
-               (tail (cdr ls))
-               (continue (remove-eqv-subsets tail acc))
-              )
-              (append continue (filter (lambda (x) (subset-eqv? head x)) tail))
+            acc
+            (let* ((head (car ls))
+                   (tail (cdr ls))
+                   (continue (remove-eqv-subsets tail acc))
+                  )
+                  (append continue (filter (lambda (x) (subset-eqv? head x)) tail))
 
-        )
+            )
         )
 )
 ; ---------------------------------------------------------------------------- ;
@@ -162,7 +172,12 @@
 (define (contradiction? formule) (contient? #t (map (lambda (x) (contient-contradiction? x)) (semtab (cree-liste-tableau formule))))
 )
 ; ---------------------------------------------------------------------------- ;
-; A SPECIFIER
+;Renvoie la liste des modèles (tableau sémantique) à partir d'une liste de formules
+;
+;   précondition: liste-formule != null
+;
+;   retourne:
+;         la liste des modèles.
 (define (models liste-formule)
         (let* ((ls (filter-not contient-contradiction? (semtab liste-formule)))
               (elem (elements ls))
@@ -172,37 +187,40 @@
 
               (if (eqv? (length set) 1)
                   set
-                  (remove-eqv-subsets set '())
+                  (let ((clean-set (remove-eqv-subsets set '())))
+                       (if (are-subsets-eqv? clean-set)
+                           (car clean-set)
+                           clean-set
+                       )
+                  )
               )
 
         )
 )
 ; ---------------------------------------------------------------------------- ;
-;(define (counterexamples? formule) (contient? #t (map (lambda (x y) (satisfiable? (append x (not y)))) (semtab (cree-liste-tableau formule))))
-;)
+
 ; ---------------------------------------------------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
 ; ---------------------------------------TEST--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
-;(tautology? test-tautology)                  ; doit donner #t
-;(satisfiable? test-satisfiable)              ; doit donner #t
-;(contradiction? test-contradiction)          ; doit donner #t
+(tautology? test-tautology)                  ; doit donner #t
+(satisfiable? test-satisfiable)              ; doit donner #t
+(contradiction? test-contradiction)          ; doit donner #t
 ; ---------------------------------------------------------------------------- ;
-
-(define test '((IFTHEN p (IFTHEN q r)) (NOT (IFTHEN (IFTHEN p q) r))))
-(define test-2 '((AND (OR a b) (NOT c)) (AND a b)))
-
 (display 'test1==> )
-(semtab test)
+(semtab test-1)
+(display 'model_test1==> )
+(models test-1)                              ; doit donner '(((NOT p) (NOT r) (NOT q))
+                                             ;               ((NOT p) (NOT r) q))
 (display 'test2==> )
 (semtab test-2)
-
-; (filter-not contient-contradiction? (semtab test-2))
-; (models-aux (elements test-2) (filter-not contient-contradiction? (semtab test-2)) '())
-(display 'model_test1==> )
-(models test)
 (display 'model_test2==> )
-(models test-2)
+(models test-2)                              ; doit donner '((a b (NOT c)))
+
+(display 'test3==> )
+(semtab test-3)
+(display 'model_test3==> )
+(models test-3)                              ; doit donner '(b c (NOT a))
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------------------FIN TEST--------------------------------- ;
 ; ---------------------------------------------------------------------------- ;
