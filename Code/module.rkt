@@ -178,7 +178,7 @@
 ;   retourne:
 ;         soit #t soit #f
 
-(define (tautology? formule) (not (contient? #f (map (lambda (x) (not (contient-contradiction? x))) (semtab (cree-liste-tableau formule)))))
+(define (tautology? formule) (not (contient? #f (map (lambda (x) (not (contient-contradiction? x))) (semtab (cree-liste-tab formule)))))
 )
 ; ---------------------------------------------------------------------------- ;
 ;Pour verifier si une formule est une contradiction (toujours faux)
@@ -190,7 +190,7 @@
 ;         soit #t soit #f
 
 
-(define (contradiction? formule) (contient? #t (map (lambda (x) (contient-contradiction? x)) (semtab (cree-liste-tableau formule))))
+(define (contradiction? formule) (contient? #t (map (lambda (x) (contient-contradiction? x)) (semtab (cree-liste-tab formule))))
 )
 ; ---------------------------------------------------------------------------- ;
 ;Renvoie la liste des modèles (tableau sémantique) à partir d'une liste de formules

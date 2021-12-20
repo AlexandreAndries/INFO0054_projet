@@ -6,17 +6,17 @@
 ; # Projet  : INFO0054 - Programmation Fonctionelle                            ;
 ; # Date    : 11/12/2021                                                       ;
 ; ---------------------------------------------------------------------------- ;
-(provide cree-liste-tableau)
-(provide ajout-tableau)
+(provide cree-liste-tab)
+(provide ajout-tab)
 
 (provide mk-NOT)
 (provide get-proposition-NOT)
 ; ---------------------------------------------------------------------------- ;
 ; ---------------Définition des fonctions pour les listes--------------------- ;
 ; ---------------------------------------------------------------------------- ;
-(define cree-liste-tableau list)
+(define cree-liste-tab list)
 ; ---------------------------------------------------------------------------- ;
-(define ajout-tableau list)
+(define ajout-tab list)
 ; ---------------------------------------------------------------------------- ;
 (define (mk-NOT x) (list 'NOT x))
 ; ---------------------------------------------------------------------------- ;
