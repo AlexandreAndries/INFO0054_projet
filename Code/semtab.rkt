@@ -16,33 +16,6 @@
 ; ---------------------------------------------------------------------------- ;
 ; -----------------------Définition des fonctions locales--------------------- ;
 ; ---------------------------------------------------------------------------- ;
-;Vérifie si la liste x est un atome
-;   précondition: x != null
-;
-;   retourne:
-;         #t si x est un atome
-;         #f sinon
-(define (atom? x) (and (not (null? x)) (not (pair? x))))
-; ---------------------------------------------------------------------------- ;
-;Vérifie si "x" appartient à "ls"
-;   précondition: x != null
-;
-;   retourne:
-;         #t si x appartient à ls
-;         #f sinon
-(define (contient? x ls) (if (member x ls) #t #f))
-(provide contient?)
-; ---------------------------------------------------------------------------- ;
-;Supprime tous les duplicats existant dans l
-;   précondition: l != null
-;
-;   retourne:
-;         une liste traité ne possèdant plus de duplicats
-(define (remove-duplicates l)
-  (cond ((null? l) '())
-        ((member (car l) (cdr l)) (remove-duplicates (cdr l)))
-        (else (cons (car l) (remove-duplicates (cdr l)))))
-)
 ; ---------------------------------------------------------------------------- ;
 ;Elimine les opérations dites simples en un ou deux tableaux maximum
 ;   précondition: operation != null
@@ -69,44 +42,6 @@
     )
 )
 ; ---------------------------------------------------------------------------- ;
-;Vérifie si le tableau entré contient une contradiction (ex: a et (NOT a))
-;   précondition: tableau != null
-;
-;   retourne:
-;         #t si tableau contient une contradiction
-;         #f sinon
-(define (contient-contradiction? tableau)
-  (if (null? tableau)
-    ;consequent
-    #f
-    ;else
-    (let* ((head (car tableau)) (tail (cdr tableau)) (continue (contient-contradiction? tail)))
-      (if (atom? head)
-        (if (contient? (mk-NOT head) tail) #t continue)
-        (if (contient? (get-proposition-NOT head) tail) #t continue)))
-  )
-)
-(provide contient-contradiction?)
-; ---------------------------------------------------------------------------- ;
-;Vérifie si le tableau entré contient un opérateur binaire (AND/OR/IFTHEN)
-;   précondition: tableau != null
-;
-;   retourne:
-;         #t si tableau contient un opérateur binaire
-;         #f sinon (ne contient que des atomes et des 'NOT)
-(define (contient-operateur? tableau)
-  (if (null? tableau)
-    ;consequent
-    #f
-    ;else
-    (let* ((head (car tableau)) (tail (cdr tableau)) (continue (contient-operateur? tail)))
-      (if (atom? head)
-        continue
-        (if (not (equal? 'NOT (car head))) #t continue)))
-  )
-)
-(provide contient-operateur?)
-; ---------------------------------------------------------------------------- ;
 ;Vérifie si il y a des opérations et renvoie une formule depuis liste-formule.
 ;La fonction renvoie en priorité les formules qui ne créent qu'un tableau.
 ;(AND, NOT OR, NOT  IFTHEN).
@@ -126,7 +61,8 @@
                                       ((list 'AND a b) operation)
                                       ((list 'NAND a b) reste)
                                       ((list 'XOR a b) reste)
-                                      ((list 'NOT (list 'IFTHEN a b)) reste)
+                                      ((list 'XNOR a b) reste)
+                                      ((list 'NOT (list 'IFTHEN a b)) operation)
                                       ((list 'NOT (list 'EQUIV a b)) reste)
                                       ((list 'NOT (list 'OR a b)) operation)
                                       ((list 'NOT (list 'NOT a)) operation)
@@ -145,6 +81,7 @@
                                   ((list 'AND a b) reste)
                                   ((list 'NAND a b) operation)
                                   ((list 'XOR a b) operation)
+                                  ((list 'XNOR a b) operation)
                                   ((list 'NOT (list 'IFTHEN a b)) reste)
                                   ((list 'NOT (list 'EQUIV a b)) operation)
                                   ((list 'NOT (list 'OR a b)) reste)

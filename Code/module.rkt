@@ -22,13 +22,6 @@
 ; ---------------------------------------------------------------------------- ;
 ; ------------------------------fonctions locales----------------------------- ;
 ; ---------------------------------------------------------------------------- ;
-;Vérifie si la liste x est un atome
-;   précondition: x != null
-;
-;   retourne:
-;         #t si x est un atome
-;         #f sinon
-(define (atom? x) (and (not (null? x)) (not (pair? x))))
 ; ---------------------------------------------------------------------------- ;
 ;Renvoie la liste des variables propositionnelles contenue dans liste-formule.
 ;
